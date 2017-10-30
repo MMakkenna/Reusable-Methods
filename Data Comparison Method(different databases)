@@ -1,0 +1,85 @@
+public static void CompareData(String driver,String connectionstring,String table1,String table2)
+	{
+	 String Fieldvalue="",Fieldvalue1=""; 
+	 int t1fields, t2fields,fieldcount=0,t1rwcnt=0,t2rwcnt=0;
+	 ResultSet rs1 = null,rs2,rs3,rs4,rs5;
+	 java.sql.Connection conn1;
+	 ResultSetMetaData rs1Metadata,rs2Metadata;
+		try
+		{
+		int ExpResult=0;
+		 Class.forName(driver);
+		 conn1 = DriverManager.getConnection(connectionstring);
+		 Statement statement1 = conn1.createStatement();
+		 rs4=statement1.executeQuery("select count(*) from "+table1+"");
+			 while(rs4.next())
+			 {
+				 t1rwcnt=Integer.parseInt(rs4.getString(1));
+				 System.out.println("No.of Rows in first table:"+t1rwcnt);
+			 }
+	   rs5=statement1.executeQuery("select count(*) from "+table2+"");
+				 while(rs5.next())
+				 {
+					 t2rwcnt=Integer.parseInt(rs5.getString(1));
+					 System.out.println("No.of Rows in second table:"+t2rwcnt);
+				 }
+	 Statement statement2 = conn1.createStatement();
+	 rs1 = statement2.executeQuery("select * from "+table1+"");
+	 rs1Metadata = rs1.getMetaData();
+	 rs1.next();
+	 Statement statement3 = conn1.createStatement();
+	 rs2 = statement3.executeQuery("select * from "+table2+"");
+	 rs2Metadata = rs2.getMetaData();
+	 rs2.next();
+	 t1fields = rs1Metadata.getColumnCount();
+	 t2fields = rs2Metadata.getColumnCount();
+	 if (t1rwcnt==t2rwcnt)
+	 {
+		 if(t1fields<=t2fields)
+			 fieldcount=t1fields;
+		 	else
+			 fieldcount=t2fields;
+				 for(int i = 1 ; i<=fieldcount;i++)
+				 {
+					 if(rs1Metadata.getColumnName(i).contains("_DT"))
+						 System.out.println("");
+					 else
+						 Fieldvalue=Fieldvalue+"TO_CHAR("+rs1Metadata.getColumnName(i)+"),";
+				 }
+		 Fieldvalue=Fieldvalue.replaceAll(",$", "");
+		 System.out.println(Fieldvalue);
+			 for(int j = 1 ; j<=fieldcount;j++)
+			 {
+				if(rs2Metadata.getColumnName(j).contains("_DT"))
+				System.out.println("");
+				else
+				Fieldvalue1=Fieldvalue1+"TO_CHAR("+rs2Metadata.getColumnName(j)+"),";
+			 }
+	     Fieldvalue1=Fieldvalue1.replaceAll(",$", "");
+		 System.out.println(Fieldvalue1);
+		 Statement statement4 = conn1.createStatement();
+		 String finalquery="select count(*) FROM ((Select "+Fieldvalue+" FROM "+table1+")  Union  (Select "+Fieldvalue1+" FROM "+table2+"))";
+		 System.out.println(finalquery);
+		 rs3 = statement4.executeQuery(finalquery);
+			 while(rs3.next())
+			 	{
+				 ExpResult=Integer.parseInt(rs3.getString(1));
+				 System.out.println("After Comparring two tables Mismatched data Results:"+ExpResult); 
+			 	}
+					 if(ExpResult==t1rwcnt)
+						 System.out.println("Data is macthed");
+						 else
+						 System.out.println("Data is not matched");
+						 
+			conn1.close();
+
+	     }
+		 else
+		 System.out.println("Record Counts in two tables are not matched");
+	  }
+			catch(Exception e)
+			{
+			e.printStackTrace();
+			}
+		
+	}
