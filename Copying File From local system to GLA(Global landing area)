@@ -1,0 +1,32 @@
+public static void CopyFileFromLocaltoGla(String copyFrom, String copyTo,
+		boolean uploadToGLALocation) throws Exception
+ {
+	JSch jsch = new JSch();
+	Session session = null;
+	GenericMethods mref=new GenericMethods();
+    String glaServer=GenericMethods.Getdatafrompropfile("glaServer","config.properties");
+    String glaServiceAccount=GenericMethods.Getdatafrompropfile("glaServiceAccount","config.properties");
+    String glaServiceAccountPassword=GenericMethods.Getdatafrompropfile("glaServiceAccountPassword","config.properties");
+    try
+    {
+    session = jsch.getSession(glaServiceAccount, glaServer, 22);
+	session.setConfig("StrictHostKeyChecking", "no");
+	session.setPassword(glaServiceAccountPassword);
+	session.connect();
+	Channel channel = session.openChannel("sftp");
+	channel.connect();
+	ChannelSftp sftpChannel = (ChannelSftp) channel;
+    sftpChannel.put(copyFrom, copyTo);
+	sftpChannel.exit();
+	session.disconnect();
+    } 
+    catch (JSchException e)
+    {
+	e.printStackTrace();
+	} 
+    catch (SftpException e) 
+    {
+	e.printStackTrace();
+    }
+	
+  }
